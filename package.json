@@ -9,7 +9,7 @@
   },
   "dependencies": {},
   "scripts": {
-    "test-watch": "mocha --require ts-node/register --watch --watch-extensions ts ./*.spec.ts",
+    "test-watch": "mocha --require ts-node/register --watch ./*.spec.ts",
     "test": "mocha --require ts-node/register ./*.spec.ts"
   }
 }
