@@ -10,6 +10,6 @@
   "dependencies": {},
   "scripts": {
     "test-watch": "mocha --require ts-node/register --watch ./*.spec.ts",
-    "test": "mocha --require ts-node/register ./*.spec.ts"
+    "tests": "mocha --require ts-node/register ./*.spec.ts"
   }
 }
