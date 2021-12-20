@@ -1,15 +1,35 @@
-export function StringIsEmpty(aString: string): boolean {
-  return aString === undefined || aString === null || aString === '';
+export class StringHelper {
+  static StringIsEmpty(aString: string): boolean {
+    return aString === undefined || aString === null || aString === '';
+  }
+
+  static StringIsNotEmpty(aString: string): boolean {
+    return !this.StringIsEmpty(aString);
+  }
+
+  static StringIsEmptyWithTrim(aString: string): boolean {
+    return aString === undefined || aString === null || aString === '' || aString.trim() === '';
+  }
+
+  static StringIsNotEmptyWithTrim(aString: string): boolean {
+    return !this.StringIsEmptyWithTrim(aString);
+  }
 }
 
-export function StringIsNotEmpty(aString: string): boolean {
-  return !(StringIsEmpty(aString));
-}
+export class TagMaker {
+  static MakeOpenTag(aTag: string): string {
+    return `<${aTag}>`;
+  }
 
-export function StringIsEmptyWithTrim(aString: string): boolean {
-  return aString === undefined || aString === null || aString === '' || aString.trim() === '';
-}
+  static MakeCloseTag(aTag: string): string {
+    return `</${aTag}>`;
+  }
 
-export function StringIsNotEmptyWithTrim(aString: string): boolean {
-  return !(StringIsEmptyWithTrim(aString));
+  static MakeSlashCloseTag(): string {
+    return ' />';
+  }
+
+  static MakeCommentCloseTag(): string {
+    return ' -->';
+  }
 }
