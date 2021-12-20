@@ -1,4 +1,4 @@
-export enum CloseTagType {
+export enum CloseTag {
   Normal,
   Empty,
   Comment,
@@ -9,9 +9,10 @@ export enum CanHaveAttributes {
   CannotHaveAttributes,
 }
 
-export enum TagStateType {
+export enum TagState {
+  NoTag,
   BracketOpen,
-  tsTagOpen,
+  TagOpen,
   CommentOpen,
   TagClosed,
   InHeadTag,
@@ -24,4 +25,26 @@ export enum TagStateType {
   HasDefinitionTerm,
   DefTermIsCurrent,
   DefItemIsCurrent,
+}
+
+export enum HtmlErrorLevel {
+  Errors,
+  StrictHTML4,
+  StrictHTML5,
+  Strictxhtml,
+}
+
+export enum FormState {
+  InFormTag,
+  InSelect,
+  InOptGroup,
+}
+
+export enum TableState {
+  InTable,
+  InTableRowTag,
+  TableHasCaption,
+  TableHasColGroup,
+  TableHasCol,
+  TableHasData,
 }
