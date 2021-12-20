@@ -2,6 +2,7 @@ import IHtmlWriter from './htmlwriter.interfaces';
 import Htmlwriter from './htmlwriter';
 import * as chai from 'chai';
 import { StringHelper, TagMaker } from './htmlwriter.utils';
+import { CloseTag, CanHaveAttributes } from './htmlwriter.types';
 
 const expect = chai.expect;
 
@@ -12,8 +13,11 @@ describe('IHTMLWriter', () => {
     expect(htmlWriter.HTML).to.equal('<blah');
   });
 
-
-
+  it('should add a tag properly using addTag()', () => {
+    const htmlWriter: IHtmlWriter = new Htmlwriter('blah');
+    htmlWriter.addTag('floog', CloseTag.Normal, CanHaveAttributes.CannotHaveAttributes);
+    expect(htmlWriter.HTML).to.equal('<blah><floog');
+  });
 });
 
 // StringHelper tests
