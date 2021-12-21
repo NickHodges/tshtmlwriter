@@ -48,3 +48,8 @@ export enum TableState {
   TableHasCol,
   TableHasData,
 }
+
+export enum UseCRLFOptions {
+  UseCRLF,
+  NoCRLF,
+}
