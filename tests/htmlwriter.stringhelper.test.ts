@@ -1,26 +1,7 @@
-import IHtmlWriter from './htmlwriter.interfaces';
-import Htmlwriter from './htmlwriter';
-import * as chai from 'chai';
-import { StringHelper, TagMaker } from './htmlwriter.utils';
-import { CloseTag, CanHaveAttributes } from './htmlwriter.types';
-
-const expect = chai.expect;
-
-// Htmlwriter tests
-describe('IHTMLWriter', () => {
-  it('should have correct open tag when created', () => {
-    const htmlWriter: IHtmlWriter = new Htmlwriter('blah');
-    expect(htmlWriter.HTML).to.equal('<blah');
-  });
-
-  it('should add a tag properly using addTag()', () => {
-    const htmlWriter: IHtmlWriter = new Htmlwriter('blah');
-    htmlWriter.addTag('floog', CloseTag.Normal, CanHaveAttributes.CannotHaveAttributes);
-    expect(htmlWriter.HTML).to.equal('<blah><floog');
-  });
-});
-
 // StringHelper tests
+
+import { expect } from "chai";
+import { StringHelper } from "../htmlwriter.utils";
 
 describe('StringHelper.StringIsEmpty', () => {
   it('should be true when string has no characters', () => {
@@ -55,19 +36,5 @@ describe('StringHelper.StringIsEmptyWithTrim', () => {
 describe('StringHelper.StringIsNotEmptyWithTrim', () => {
   it('should be true when string has spaces', () => {
     expect(StringHelper.StringIsNotEmptyWithTrim('  dd   ')).to.be.true;
-  });
-});
-
-describe('TagMaker', () => {
-  it('should create proper opening tag', () => {
-    expect(TagMaker.MakeOpenTag('blah')).to.equal('<blah>');
-  });
-
-  it('should create proper closing tag', () => {
-    expect(TagMaker.MakeCloseTag('blah')).to.equal('</blah>');
-  });
-
-  it('should create proper slash close tag', () => {
-    expect(TagMaker.MakeSlashCloseTag()).to.equal(' />');
   });
 });
