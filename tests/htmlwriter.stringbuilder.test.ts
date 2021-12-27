@@ -18,7 +18,7 @@ describe('StringBuilder', () => {
     expect(sb.append('garf').ToString()).to.equal('blahgarf');
   });
 
-  it('should report string is empty', () => {
+  it('should report clear string is empty', () => {
     expect(sb.append('garf').Clear().IsEmpty()).to.equal(true);
   });
 });
