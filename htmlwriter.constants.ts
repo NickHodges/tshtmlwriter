@@ -1,5 +1,6 @@
 // HTML Characters and HTML Entities
 export const cCloseBracket: string = '>';
+export const cOpenBracket: string = '<';
 
 // Error strings
 export const strCaptionMustBeFirst = 'A <caption> tag must be the very first tag after a <table> tag.';

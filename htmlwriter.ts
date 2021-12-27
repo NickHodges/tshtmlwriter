@@ -1,10 +1,12 @@
-import { CloseTag, TagState, HtmlErrorLevel, CanHaveAttributes, FormState, TableState } from './htmlwriter.types';
+import { CloseTag, TagState, HtmlErrorLevel, CanHaveAttributes, FormState, TableState, UseCRLFOptions } from './htmlwriter.types';
 import IHtmlWriter from './htmlwriter.interfaces';
 import { StringHelper, TagMaker } from './htmlwriter.utils';
-import { cCloseBracket } from './htmlwriter.constants';
+import { cCloseBracket, cOpenBracket, strClosingClosedTag, strNoClosingTag } from './htmlwriter.constants';
+import { NoClosingTagHTMLWriterError, TryingToCloseClosedTagError } from './htmlwriter.exceptions';
+import { StringBuilder } from './htmlwriter.stringbuilder';
 
 export default class HtmlWriter implements IHtmlWriter {
-  private _html: string = '';
+  private _html: StringBuilder = new StringBuilder('');
   private _currentTagName: string = '';
   private _closeTagType: CloseTag = CloseTag.Empty;
 
@@ -25,7 +27,8 @@ export default class HtmlWriter implements IHtmlWriter {
 
   private initializeHtml(aCloseTag: CloseTag, aTagName: string) {
     this._currentTagName = aTagName;
-    this._html = `<${aTagName}`;
+    this._html = new StringBuilder('');
+    this._html.append(cOpenBracket).append(this._currentTagName);
     this._closeTagType = aCloseTag;
     this._tagStates.add(TagState.BracketOpen);
     this._errorLevel.add(HtmlErrorLevel.Errors);
@@ -54,17 +57,61 @@ export default class HtmlWriter implements IHtmlWriter {
     temp._formStates = this._formStates;
     temp._tableStates = this._tableStates;
     // take Self tag, add the new tag, and make it the HTML for the return
-    this.HTML += temp.HTML;
-    temp.HTML = '';
-    temp.HTML += this.HTML;
-    temp._parent = this;
+    this._html.append(temp.HTML.ToString());
+    temp._html.Clear();
+    temp._html.append(this.HTML.ToString());
+    temp._parent = this; //<IHtmlWriter>(this);
 
     return temp;
   }
 
+  // close methods
+
+  public closeTag(aUseCRLF: UseCRLFOptions = UseCRLFOptions.NoCRLF): IHtmlWriter {
+    if (this._tagStates.has(TagState.TagClosed)) {
+      throw new TryingToCloseClosedTagError(strClosingClosedTag);
+    }
+
+    if (!this.inSlashOnlyTag() && !this.inCommentTag()) {
+      this.closeBracket();
+    }
+
+    this.closeTheTag();
+
+    this.cleanUpTagState();
+
+    let result: IHtmlWriter;
+
+    if (this._parent !== null) {
+      let tempText: string = this.HTML.ToString();
+      result = this._parent;
+      result.HTML.Clear().append(tempText);
+    } else {
+      result = this;
+      this._tagStates.delete(TagState.TagClosed);
+    }
+
+    if (aUseCRLF === UseCRLFOptions.UseCRLF) {
+      result.HTML.append('\r\n');
+    }
+
+    return result;
+  }
+
+  private cleanUpTagState(): void {}
+
+  private closeTheTag(): void {
+    if (this.tagIsOpen() || this.inCommentTag()) {
+      if (StringHelper.StringIsEmpty(this._closingTag)) {
+        throw new NoClosingTagHTMLWriterError(strNoClosingTag);
+      }
+      this.HTML.append(this._closingTag);
+    }
+  }
+
   private closeBracket(): IHtmlWriter {
     if (this._tagStates.has(TagState.BracketOpen) && !this.inCommentTag()) {
-      this._html += cCloseBracket;
+      this.HTML.append(cCloseBracket);
       this._tagStates.add(TagState.TagOpen);
       this._tagStates.delete(TagState.BracketOpen);
     }
@@ -76,13 +123,18 @@ export default class HtmlWriter implements IHtmlWriter {
     return this._tagStates.has(TagState.CommentOpen);
   }
 
-  // properties
-
-  public get HTML(): string {
-    return this._html;
+  private inSlashOnlyTag(): boolean {
+    return this._closingTag === TagMaker.MakeSlashCloseTag();
   }
 
-  public set HTML(aValue: string) {
-    this._html = aValue;
+  private tagIsOpen(): boolean {
+    return this._tagStates.has(TagState.TagOpen);
+  }
+
+  // properties
+
+  public get HTML():
+  StringBuilder {
+    return this._html;
   }
 }
