@@ -11,7 +11,7 @@ export const cID = 'id';
 export const cMeta = 'meta';
 export const cName = 'name';
 export const cContent = 'content';
-export const cform = 'form';
+export const cForm = 'form';
 export const cInput = 'input';
 export const cButton = 'button';
 
