@@ -16,15 +16,19 @@ export enum TagState {
   CommentOpen,
   TagClosed,
   InHeadTag,
+  InBodyTag,
   InListTag,
   InObjectTag,
   InFieldSetTag,
   InFrameSetTag,
+  InFormTag,
   InMapTag,
   InDefinitionList,
   HasDefinitionTerm,
   DefTermIsCurrent,
   DefItemIsCurrent,
+  InSelectTag,
+  InOptGroup,
 }
 
 export enum HtmlErrorLevel {
