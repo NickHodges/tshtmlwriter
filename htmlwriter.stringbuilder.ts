@@ -7,7 +7,7 @@ export class StringBuilder {
     this.append(aString);
   }
 
-  IsEmpty(): boolean {
+  isEmpty(): boolean {
     return StringHelper.StringIsEmpty(this._string);
   }
 
@@ -18,11 +18,11 @@ export class StringBuilder {
     return this;
   }
 
-  ToString(): string {
+  toString(): string {
     return this._string;
   }
 
-  Clear(): StringBuilder {
+  clear(): StringBuilder {
     this._string = '';
     return this;
   }
