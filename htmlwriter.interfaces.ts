@@ -4,7 +4,7 @@ import { StringBuilder } from './htmlwriter.stringbuilder';
 export default interface IHtmlWriter {
   get HTML(): StringBuilder;
   addTag(aString: string, aCloseTagType: CloseTag, aCanHaveAttributes: CanHaveAttributes): IHtmlWriter;
-  closeTag(aUseCRLF: UseCRLFOptions): IHtmlWriter;
+  closeTag(aUseCRLF?: UseCRLFOptions): IHtmlWriter;
 }
 
 export interface ITableWriter {
@@ -19,5 +19,3 @@ export interface ITableWriter {
   OpenTableBody(): ITableWriter & IHtmlWriter;
   OpenTableFoot(): ITableWriter & IHtmlWriter;
 }
-
-
