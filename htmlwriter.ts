@@ -264,6 +264,14 @@ export default class HtmlWriter implements IHtmlWriter {
     this._tagStates.delete(TagState.DefItemIsCurrent);
   }
 
+  // Main section methods
+
+  public openHead(): IHtmlWriter {
+    this._tagStates.add(TagState.InHeadTag);
+    this.addTag(stringConstants.cHead, CloseTag.Normal, CanHaveAttributes.CanHaveAttributes);
+    return this;
+  }
+
   // properties
 
   public get HTML(): StringBuilder {
