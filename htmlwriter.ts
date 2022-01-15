@@ -1,8 +1,6 @@
 import { CloseTag, TagState, HtmlErrorLevel, CanHaveAttributes, FormState, TableState, UseCRLFOptions } from './htmlwriter.types';
 import IHtmlWriter from './htmlwriter.interfaces';
 import { StringHelper, TagMaker } from './htmlwriter.utils';
-// import { cCloseBracket, cOpenBracket, strClosingClosedTag, strNoClosingTag, cObject, cMap, cFrameset, cFieldSet, cComment,
-//   cForm, cUnorderedList, cOrderedList, cTable, cHead, cBody, cTableRow, cSelect, cOptGroup, cDL, cCRLF } from './htmlwriter.constants';
 import * as stringConstants from './htmlwriter.constants';
 import { NoClosingTagHTMLWriterError, TryingToCloseClosedTagError } from './htmlwriter.exceptions';
 import { StringBuilder } from './htmlwriter.stringbuilder';
