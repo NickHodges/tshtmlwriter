@@ -11,14 +11,14 @@ beforeEach(() => {
 
 describe('StringBuilder', () => {
   it('should correctly append text from scratch', () => {
-    expect(sb.ToString()).to.equal('blah');
+    expect(sb.toString()).to.equal('blah');
   });
 
   it('should correctly double append text from scratch', () => {
-    expect(sb.append('garf').ToString()).to.equal('blahgarf');
+    expect(sb.append('garf').toString()).to.equal('blahgarf');
   });
 
   it('should report clear string is empty', () => {
-    expect(sb.append('garf').Clear().IsEmpty()).to.equal(true);
+    expect(sb.append('garf').clear().isEmpty()).to.equal(true);
   });
 });

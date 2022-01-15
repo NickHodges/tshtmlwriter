@@ -15,17 +15,17 @@ beforeEach(() => {
 // Htmlwriter tests
 describe('IHTMLWriter', () => {
   it('should have correct open tag when created', () => {
-    expect(htmlWriter.HTML.ToString()).to.equal('<blah');
+    expect(htmlWriter.HTML.toString()).to.equal('<blah');
   });
 
   it('should add a tag properly using addTag()', () => {
     htmlWriter.addTag('floog', CloseTag.Normal, CanHaveAttributes.CannotHaveAttributes);
-    expect(htmlWriter.HTML.ToString()).to.equal('<blah><floog');
+    expect(htmlWriter.HTML.toString()).to.equal('<blah><floog');
   });
 
   it('should close a tag properly', () => {
-    htmlWriter.addTag('floog', CloseTag.Normal, CanHaveAttributes.CannotHaveAttributes).closeTag(UseCRLFOptions.NoCRLF);
-    expect(htmlWriter.HTML.ToString()).to.equal('<blah><floog></floog>');
+    htmlWriter.addTag('floog', CloseTag.Normal, CanHaveAttributes.CannotHaveAttributes).closeTag().closeTag();
+    expect(htmlWriter.HTML.toString()).to.equal('<blah><floog></floog></blah>');
   });
 });
 
