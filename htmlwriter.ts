@@ -1,7 +1,9 @@
 import { CloseTag, TagState, HtmlErrorLevel, CanHaveAttributes, FormState, TableState, UseCRLFOptions } from './htmlwriter.types';
 import IHtmlWriter from './htmlwriter.interfaces';
 import { StringHelper, TagMaker } from './htmlwriter.utils';
-import { cCloseBracket, cOpenBracket, strClosingClosedTag, strNoClosingTag, cObject, cMap, cFrameset, cFieldSet, cComment, cForm, cUnorderedList, cOrderedList, cTable, cHead, cBody, cTableRow, cSelect, cOptGroup, cDL } from './htmlwriter.constants';
+// import { cCloseBracket, cOpenBracket, strClosingClosedTag, strNoClosingTag, cObject, cMap, cFrameset, cFieldSet, cComment,
+//   cForm, cUnorderedList, cOrderedList, cTable, cHead, cBody, cTableRow, cSelect, cOptGroup, cDL, cCRLF } from './htmlwriter.constants';
+import * as stringConstants from './htmlwriter.constants';
 import { NoClosingTagHTMLWriterError, TryingToCloseClosedTagError } from './htmlwriter.exceptions';
 import { StringBuilder } from './htmlwriter.stringbuilder';
 import { cEmptyString } from './htmlwriter.constants';
@@ -29,7 +31,7 @@ export default class HtmlWriter implements IHtmlWriter {
   private initializeHtml(aCloseTag: CloseTag, aTagName: string) {
     this._currentTagName = aTagName;
     this._html = new StringBuilder('');
-    this._html.append(cOpenBracket).append(this._currentTagName);
+    this._html.append(stringConstants.cOpenBracket).append(this._currentTagName);
     this._closeTagType = aCloseTag;
     this._tagStates.add(TagState.BracketOpen);
     this._errorLevel.add(HtmlErrorLevel.Errors);
@@ -58,9 +60,9 @@ export default class HtmlWriter implements IHtmlWriter {
     temp._formStates = this._formStates;
     temp._tableStates = this._tableStates;
     // take Self tag, add the new tag, and make it the HTML for the return
-    this._html.append(temp.HTML.ToString());
-    temp._html.Clear();
-    temp._html.append(this.HTML.ToString());
+    this._html.append(temp.HTML.toString());
+    temp._html.clear();
+    temp._html.append(this.HTML.toString());
     temp._parent = this; //<IHtmlWriter>(this);
 
     return temp;
@@ -70,7 +72,7 @@ export default class HtmlWriter implements IHtmlWriter {
 
   public closeTag(aUseCRLF: UseCRLFOptions = UseCRLFOptions.NoCRLF): IHtmlWriter {
     if (this._tagStates.has(TagState.TagClosed)) {
-      throw new TryingToCloseClosedTagError(strClosingClosedTag);
+      throw new TryingToCloseClosedTagError(stringConstants.strClosingClosedTag);
     }
 
     if (!this.inSlashOnlyTag() && !this.inCommentTag()) {
@@ -84,16 +86,16 @@ export default class HtmlWriter implements IHtmlWriter {
     let result: IHtmlWriter;
 
     if (this._parent !== null) {
-      let tempText: string = this.HTML.ToString();
+      let tempText: string = this.HTML.toString();
       result = this._parent;
-      result.HTML.Clear().append(tempText);
+      result.HTML.clear().append(tempText);
     } else {
       result = this;
       this._tagStates.delete(TagState.TagClosed);
     }
 
     if (aUseCRLF === UseCRLFOptions.UseCRLF) {
-      result.HTML.append('\r\n');
+      result.HTML.append(stringConstants.cCRLF);
     }
 
     return result;
@@ -107,63 +109,63 @@ export default class HtmlWriter implements IHtmlWriter {
       this._tableStates.clear();
     }
 
-    if (this._currentTagName === cObject && this.inObjectTag()) {
+    if (this._currentTagName === stringConstants.cObject && this.inObjectTag()) {
       this._tagStates.delete(TagState.InObjectTag);
     }
 
-    if (this._currentTagName === cMap && this.inMapTag()) {
+    if (this._currentTagName === stringConstants.cMap && this.inMapTag()) {
       this._tagStates.delete(TagState.InMapTag);
     }
 
-    if (this._currentTagName === cFrameset && this.inFrameSetTag()) {
+    if (this._currentTagName === stringConstants.cFrameset && this.inFrameSetTag()) {
       this._tagStates.delete(TagState.InFrameSetTag);
     }
 
-    if (this._currentTagName === cFieldSet && this.inFieldSetTag()) {
+    if (this._currentTagName === stringConstants.cFieldSet && this.inFieldSetTag()) {
       this._tagStates.delete(TagState.InFieldSetTag);
     }
 
-    if (this._currentTagName === cComment && this.inCommentTag()) {
+    if (this._currentTagName === stringConstants.cComment && this.inCommentTag()) {
       this._tagStates.delete(TagState.CommentOpen);
     }
 
-    if (this._currentTagName === cForm && this.inFormTag()) {
+    if (this._currentTagName === stringConstants.cForm && this.inFormTag()) {
       this._tagStates.delete(TagState.InFormTag);
     }
 
-    if (this._currentTagName === cUnorderedList && this.inListTag()) {
+    if (this._currentTagName === stringConstants.cUnorderedList && this.inListTag()) {
       this._tagStates.delete(TagState.InListTag);
     }
 
-    if (this._currentTagName === cOrderedList && this.inListTag()) {
+    if (this._currentTagName === stringConstants.cOrderedList && this.inListTag()) {
       this._tagStates.delete(TagState.InListTag);
     }
 
-    if (this._currentTagName === cTable && this.inTableTag()) {
+    if (this._currentTagName === stringConstants.cTable && this.inTableTag()) {
       this._tableStates.delete(TableState.InTable);
     }
 
-    if (this._currentTagName === cHead && this.inHeadTag()) {
+    if (this._currentTagName === stringConstants.cHead && this.inHeadTag()) {
       this._tagStates.delete(TagState.InHeadTag);
     }
 
-    if (this._currentTagName === cBody && this.inBodyTag()) {
+    if (this._currentTagName === stringConstants.cBody && this.inBodyTag()) {
       this._tagStates.delete(TagState.InBodyTag);
     }
 
-    if (this._currentTagName === cTableRow && this.inTableRowTag()) {
+    if (this._currentTagName === stringConstants.cTableRow && this.inTableRowTag()) {
       this._tableStates.delete(TableState.InTableRowTag);
     }
 
-    if (this._currentTagName === cSelect && this.inSelectTag()) {
+    if (this._currentTagName === stringConstants.cSelect && this.inSelectTag()) {
       this._tagStates.delete(TagState.InSelectTag);
     }
 
-    if (this._currentTagName === cOptGroup && this.inOptGroup()) {
+    if (this._currentTagName === stringConstants.cOptGroup && this.inOptGroup()) {
       this._tagStates.delete(TagState.InOptGroup);
     }
 
-    if (this._currentTagName === cDL && this.inDefList()) {
+    if (this._currentTagName === stringConstants.cDL && this.inDefList()) {
       this.removeDefintionFLags();
     }
 
@@ -173,7 +175,7 @@ export default class HtmlWriter implements IHtmlWriter {
   private closeTheTag(): void {
     if (this.tagIsOpen() || this.inCommentTag()) {
       if (StringHelper.StringIsEmpty(this._closingTag)) {
-        throw new NoClosingTagHTMLWriterError(strNoClosingTag);
+        throw new NoClosingTagHTMLWriterError(stringConstants.strNoClosingTag);
       }
       this.HTML.append(this._closingTag);
     }
@@ -181,7 +183,7 @@ export default class HtmlWriter implements IHtmlWriter {
 
   private closeBracket(): IHtmlWriter {
     if (this._tagStates.has(TagState.BracketOpen) && !this.inCommentTag()) {
-      this.HTML.append(cCloseBracket);
+      this.HTML.append(stringConstants.cCloseBracket);
       this._tagStates.add(TagState.TagOpen);
       this._tagStates.delete(TagState.BracketOpen);
     }
