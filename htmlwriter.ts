@@ -1,76 +1,65 @@
-import { CloseTag, TagState, HtmlErrorLevel, CanHaveAttributes, FormState, TableState, UseCRLFOptions } from './htmlwriter.types';
+import * as hwTypes from './htmlwriter.types';
 import IHtmlWriter from './htmlwriter.interfaces';
 import { StringHelper, TagMaker } from './htmlwriter.utils';
 import * as stringConstants from './htmlwriter.constants';
-import { NoClosingTagHTMLWriterError, TryingToCloseClosedTagError } from './htmlwriter.exceptions';
+import * as hwErrors from './htmlwriter.exceptions';
 import { StringBuilder } from './htmlwriter.stringbuilder';
 import { cEmptyString } from './htmlwriter.constants';
+import { Stack } from './htmlwriter.structures';
 
 export default class HtmlWriter implements IHtmlWriter {
   private _html: StringBuilder = new StringBuilder('');
   private _currentTagName: string = '';
-  private _closeTagType: CloseTag = CloseTag.Empty;
+  private _tagStack: Stack<hwTypes.CloseTagInfo> = new Stack<hwTypes.CloseTagInfo>();
 
-  private _tagStates = new Set(Array<TagState>());
-  private _formStates = new Set(Array<FormState>());
-  private _errorLevel = new Set(Array<HtmlErrorLevel>());
-  private _tableStates = new Set(Array<TableState>());
+  private _tagStates = new Set(Array<hwTypes.TagState>());
+  private _formStates = new Set(Array<hwTypes.FormState>());
+  private _errorLevel = new Set(Array<hwTypes.HtmlErrorLevel>());
+  private _tableStates = new Set(Array<hwTypes.TableState>());
 
   private _closingTag: string = '';
-  private _parent: IHtmlWriter | null = null;
 
-  constructor(aTagName: string, aCloseTagType: CloseTag = CloseTag.Normal) {
+  constructor(aTagName: string, aCloseTagType: hwTypes.CloseTagType = hwTypes.CloseTagType.Normal) {
     if (StringHelper.StringIsEmpty(aTagName)) {
       throw new Error('aTagName parameter cannot be empty in the constructor');
     }
     this.initializeHtml(aCloseTagType, aTagName);
   }
 
-  private initializeHtml(aCloseTag: CloseTag, aTagName: string) {
+  private initializeHtml(aCloseTag: hwTypes.CloseTagType, aTagName: string) {
     this._currentTagName = aTagName;
-    this._html = new StringBuilder('');
     this._html.append(stringConstants.cOpenBracket).append(this._currentTagName);
-    this._closeTagType = aCloseTag;
-    this._tagStates.add(TagState.BracketOpen);
-    this._errorLevel.add(HtmlErrorLevel.Errors);
-    this.setClosingTagValue(aCloseTag, aTagName);
+    this._tagStates.add(hwTypes.TagState.BracketOpen);
+    this._errorLevel.add(hwTypes.HtmlErrorLevel.Errors);
+    this.pushClosingTagValue(aCloseTag, aTagName);
   }
 
-  private setClosingTagValue(aCloseTag: CloseTag, aTagName: string = '') {
+  private pushClosingTagValue(aCloseTag: hwTypes.CloseTagType, aTagName: string = '') {
     switch (aCloseTag) {
-      case CloseTag.Normal:
-        this._closingTag = TagMaker.MakeCloseTag(aTagName);
+      case hwTypes.CloseTagType.Normal:
+        this._tagStack.push({ tagName: TagMaker.MakeCloseTag(aTagName), closeTag: aCloseTag });
         break;
-      case CloseTag.Empty:
-        this._closingTag = TagMaker.MakeSlashCloseTag();
+      case hwTypes.CloseTagType.Empty:
+        this._tagStack.push({ tagName: TagMaker.MakeSlashCloseTag(), closeTag: aCloseTag });
         break;
-      case CloseTag.Comment:
-        this._closingTag = TagMaker.MakeCommentCloseTag();
+      case hwTypes.CloseTagType.Comment:
+        this._tagStack.push({ tagName: TagMaker.MakeCommentCloseTag(), closeTag: aCloseTag });
         break;
     }
   }
 
-  public addTag(aString: string, aCloseTagType: CloseTag = CloseTag.Normal, aCanHaveAttributes: CanHaveAttributes = CanHaveAttributes.CanHaveAttributes): IHtmlWriter {
+  public addTag(aString: string, aCloseTagType: hwTypes.CloseTagType = hwTypes.CloseTagType.Normal, aCanHaveAttributes: hwTypes.CanHaveAttributes = hwTypes.CanHaveAttributes.CanHaveAttributes): IHtmlWriter {
     this.closeBracket();
-    let temp: HtmlWriter = new HtmlWriter(aString, aCloseTagType);
-    temp._parent = this._parent;
-    temp._tagStates.add(TagState.BracketOpen);
-    temp._formStates = this._formStates;
-    temp._tableStates = this._tableStates;
-    // take Self tag, add the new tag, and make it the HTML for the return
-    this._html.append(temp.HTML.toString());
-    temp._html.clear();
-    temp._html.append(this.HTML.toString());
-    temp._parent = this; //<IHtmlWriter>(this);
-
-    return temp;
+    this._tagStates.add(hwTypes.TagState.BracketOpen);
+    this._html.append(`<${aString}`);
+    return this;
   }
 
   // close methods
 
-  public closeTag(aUseCRLF: UseCRLFOptions = UseCRLFOptions.NoCRLF): IHtmlWriter {
-    if (this._tagStates.has(TagState.TagClosed)) {
-      throw new TryingToCloseClosedTagError(stringConstants.strClosingClosedTag);
+  public closeTag(aUseCRLF: hwTypes.UseCRLFOptions = hwTypes.UseCRLFOptions.NoCRLF): IHtmlWriter {
+    if (this._tagStates.has(hwTypes.TagState.TagClosed)) {
+      throw new hwErrors.TryingToCloseClosedTagError(stringConstants.strClosingClosedTag);
     }
 
     if (!this.inSlashOnlyTag() && !this.inCommentTag()) {
@@ -81,86 +70,75 @@ export default class HtmlWriter implements IHtmlWriter {
 
     this.cleanUpTagState();
 
-    let result: IHtmlWriter;
-
-    if (this._parent !== null) {
-      let tempText: string = this.HTML.toString();
-      result = this._parent;
-      result.HTML.clear().append(tempText);
-    } else {
-      result = this;
-      this._tagStates.delete(TagState.TagClosed);
+    if (aUseCRLF === hwTypes.UseCRLFOptions.UseCRLF) {
+      this.HTML.append(stringConstants.cCRLF);
     }
 
-    if (aUseCRLF === UseCRLFOptions.UseCRLF) {
-      result.HTML.append(stringConstants.cCRLF);
-    }
-
-    return result;
+    return this;
   }
 
   private cleanUpTagState(): void {
-    this._tagStates.add(TagState.TagClosed).delete(TagState.TagOpen);
-    this._tagStates.delete(TagState.BracketOpen);
+    this._tagStates.add(hwTypes.TagState.TagClosed).delete(hwTypes.TagState.TagOpen);
+    this._tagStates.delete(hwTypes.TagState.BracketOpen);
 
     if (this.tableIsOpen()) {
       this._tableStates.clear();
     }
 
     if (this._currentTagName === stringConstants.cObject && this.inObjectTag()) {
-      this._tagStates.delete(TagState.InObjectTag);
+      this._tagStates.delete(hwTypes.TagState.InObjectTag);
     }
 
     if (this._currentTagName === stringConstants.cMap && this.inMapTag()) {
-      this._tagStates.delete(TagState.InMapTag);
+      this._tagStates.delete(hwTypes.TagState.InMapTag);
     }
 
     if (this._currentTagName === stringConstants.cFrameset && this.inFrameSetTag()) {
-      this._tagStates.delete(TagState.InFrameSetTag);
+      this._tagStates.delete(hwTypes.TagState.InFrameSetTag);
     }
 
     if (this._currentTagName === stringConstants.cFieldSet && this.inFieldSetTag()) {
-      this._tagStates.delete(TagState.InFieldSetTag);
+      this._tagStates.delete(hwTypes.TagState.InFieldSetTag);
     }
 
     if (this._currentTagName === stringConstants.cComment && this.inCommentTag()) {
-      this._tagStates.delete(TagState.CommentOpen);
+      this._tagStates.delete(hwTypes.TagState.CommentOpen);
     }
 
     if (this._currentTagName === stringConstants.cForm && this.inFormTag()) {
-      this._tagStates.delete(TagState.InFormTag);
+      this._tagStates.delete(hwTypes.TagState.InFormTag);
     }
 
     if (this._currentTagName === stringConstants.cUnorderedList && this.inListTag()) {
-      this._tagStates.delete(TagState.InListTag);
+      this._tagStates.delete(hwTypes.TagState.InListTag);
     }
 
     if (this._currentTagName === stringConstants.cOrderedList && this.inListTag()) {
-      this._tagStates.delete(TagState.InListTag);
+      this._tagStates.delete(hwTypes.TagState.InListTag);
     }
 
     if (this._currentTagName === stringConstants.cTable && this.inTableTag()) {
-      this._tableStates.delete(TableState.InTable);
+      this._tableStates.delete(hwTypes.TableState.InTable);
     }
 
     if (this._currentTagName === stringConstants.cHead && this.inHeadTag()) {
-      this._tagStates.delete(TagState.InHeadTag);
+      this._tagStates.delete(hwTypes.TagState.InHeadTag);
     }
 
     if (this._currentTagName === stringConstants.cBody && this.inBodyTag()) {
-      this._tagStates.delete(TagState.InBodyTag);
+      this._tagStates.delete(hwTypes.TagState.InBodyTag);
     }
 
     if (this._currentTagName === stringConstants.cTableRow && this.inTableRowTag()) {
-      this._tableStates.delete(TableState.InTableRowTag);
+      this._tableStates.delete(hwTypes.TableState.InTableRowTag);
     }
 
     if (this._currentTagName === stringConstants.cSelect && this.inSelectTag()) {
-      this._tagStates.delete(TagState.InSelectTag);
+      this._tagStates.delete(hwTypes.TagState.InSelectTag);
     }
 
     if (this._currentTagName === stringConstants.cOptGroup && this.inOptGroup()) {
-      this._tagStates.delete(TagState.InOptGroup);
+      this._tagStates.delete(hwTypes.TagState.InOptGroup);
     }
 
     if (this._currentTagName === stringConstants.cDL && this.inDefList()) {
@@ -173,24 +151,24 @@ export default class HtmlWriter implements IHtmlWriter {
   private closeTheTag(): void {
     if (this.tagIsOpen() || this.inCommentTag()) {
       if (StringHelper.StringIsEmpty(this._closingTag)) {
-        throw new NoClosingTagHTMLWriterError(stringConstants.strNoClosingTag);
+        throw new hwErrors.NoClosingTagHTMLWriterError(stringConstants.strNoClosingTag);
       }
-      this.HTML.append(this._closingTag);
+      this.HTML.append(`<${this._closingTag}>`);
     }
   }
 
   private closeBracket(): IHtmlWriter {
-    if (this._tagStates.has(TagState.BracketOpen) && !this.inCommentTag()) {
+    if (this._tagStates.has(hwTypes.TagState.BracketOpen) && !this.inCommentTag()) {
       this.HTML.append(stringConstants.cCloseBracket);
-      this._tagStates.add(TagState.TagOpen);
-      this._tagStates.delete(TagState.BracketOpen);
+      this._tagStates.add(hwTypes.TagState.TagOpen);
+      this._tagStates.delete(hwTypes.TagState.BracketOpen);
     }
     return this;
   }
 
   // inXXXTag() methods
   private inCommentTag(): boolean {
-    return this._tagStates.has(TagState.CommentOpen);
+    return this._tagStates.has(hwTypes.TagState.CommentOpen);
   }
 
   private inSlashOnlyTag(): boolean {
@@ -198,78 +176,95 @@ export default class HtmlWriter implements IHtmlWriter {
   }
 
   private tagIsOpen(): boolean {
-    return this._tagStates.has(TagState.TagOpen);
+    return this._tagStates.has(hwTypes.TagState.TagOpen);
   }
 
   private tableIsOpen(): boolean {
-    return this._tableStates.has(TableState.InTable);
+    return this._tableStates.has(hwTypes.TableState.InTable);
   }
 
   private inObjectTag(): boolean {
-    return this._tagStates.has(TagState.InObjectTag);
+    return this._tagStates.has(hwTypes.TagState.InObjectTag);
   }
 
   private inFormTag(): boolean {
-    return this._formStates.has(FormState.InFormTag);
+    return this._formStates.has(hwTypes.FormState.InFormTag);
   }
 
   private inMapTag(): boolean {
-    return this._tagStates.has(TagState.InMapTag);
+    return this._tagStates.has(hwTypes.TagState.InMapTag);
   }
 
   private inFrameSetTag(): boolean {
-    return this._tagStates.has(TagState.InFrameSetTag);
+    return this._tagStates.has(hwTypes.TagState.InFrameSetTag);
   }
 
   private inFieldSetTag(): boolean {
-    return this._tagStates.has(TagState.InFieldSetTag);
+    return this._tagStates.has(hwTypes.TagState.InFieldSetTag);
   }
 
   private inSelectTag(): boolean {
-    return this._tagStates.has(TagState.InSelectTag);
+    return this._tagStates.has(hwTypes.TagState.InSelectTag);
   }
 
   private inListTag(): boolean {
-    return this._tagStates.has(TagState.InListTag);
+    return this._tagStates.has(hwTypes.TagState.InListTag);
   }
 
   private inTableTag(): boolean {
-    return this._tableStates.has(TableState.InTable);
+    return this._tableStates.has(hwTypes.TableState.InTable);
   }
 
   private inHeadTag(): boolean {
-    return this._tagStates.has(TagState.InHeadTag);
+    return this._tagStates.has(hwTypes.TagState.InHeadTag);
   }
 
   private inBodyTag(): boolean {
-    return this._tagStates.has(TagState.InBodyTag);
+    return this._tagStates.has(hwTypes.TagState.InBodyTag);
   }
 
   private inTableRowTag(): boolean {
-    return this._tableStates.has(TableState.InTableRowTag);
+    return this._tableStates.has(hwTypes.TableState.InTableRowTag);
   }
 
   private inOptGroup(): boolean {
-    return this._formStates.has(FormState.InOptGroup);
+    return this._formStates.has(hwTypes.FormState.InOptGroup);
   }
 
   private inDefList(): boolean {
-    return this._tagStates.has(TagState.InDefinitionList);
+    return this._tagStates.has(hwTypes.TagState.InDefinitionList);
   }
 
   private removeDefintionFLags(): void {
-    this._tagStates.delete(TagState.InDefinitionList);
-    this._tagStates.delete(TagState.HasDefinitionTerm);
-    this._tagStates.delete(TagState.DefTermIsCurrent);
-    this._tagStates.delete(TagState.DefItemIsCurrent);
+    this._tagStates.delete(hwTypes.TagState.InDefinitionList);
+    this._tagStates.delete(hwTypes.TagState.HasDefinitionTerm);
+    this._tagStates.delete(hwTypes.TagState.DefTermIsCurrent);
+    this._tagStates.delete(hwTypes.TagState.DefItemIsCurrent);
   }
 
   // Main section methods
 
   public openHead(): IHtmlWriter {
-    this._tagStates.add(TagState.InHeadTag);
-    this.addTag(stringConstants.cHead, CloseTag.Normal, CanHaveAttributes.CanHaveAttributes);
+    this._tagStates.add(hwTypes.TagState.InHeadTag);
+    this.addTag(stringConstants.cHead, hwTypes.CloseTagType.Normal, hwTypes.CanHaveAttributes.CanHaveAttributes);
     return this;
+  }
+
+  public openMeta(): IHtmlWriter {
+    this.checkInHeadTag();
+    this.addTag(stringConstants.cMeta, hwTypes.CloseTagType.Empty);
+    return this;
+  }
+
+  // Check methods
+  private checkInHeadTag(): void {
+    if (!this.inHeadTag() && this.checkForErrors()) {
+      throw new hwErrors.NotInHeadTagError('Trying to add something to a <head> tag that is not allowed in a <head> tag');
+    }
+  }
+
+  private checkForErrors(): boolean {
+    return this._errorLevel.has(hwTypes.HtmlErrorLevel.Errors);
   }
 
   // properties

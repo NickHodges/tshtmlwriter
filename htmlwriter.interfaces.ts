@@ -1,15 +1,13 @@
-import { CloseTag, CanHaveAttributes, UseCRLFOptions } from './htmlwriter.types';
+import { CloseTagType, CanHaveAttributes, UseCRLFOptions } from './htmlwriter.types';
 import { StringBuilder } from './htmlwriter.stringbuilder';
 
 export default interface IHtmlWriter {
   get HTML(): StringBuilder;
-  addTag(aString: string, aCloseTagType: CloseTag, aCanHaveAttributes: CanHaveAttributes): IHtmlWriter;
+  addTag(aString: string, aCloseTagType: CloseTagType, aCanHaveAttributes: CanHaveAttributes): IHtmlWriter;
   closeTag(aUseCRLF?: UseCRLFOptions): IHtmlWriter;
 
   openHead(): IHtmlWriter;
-
-
-
+  openMeta(): IHtmlWriter;
 }
 
 export interface ITableWriter {

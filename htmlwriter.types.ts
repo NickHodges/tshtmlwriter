@@ -1,4 +1,6 @@
-export enum CloseTag {
+export type CloseTagInfo = { tagName: string, closeTag: CloseTagType };
+
+export enum CloseTagType {
   Normal,
   Empty,
   Comment,
