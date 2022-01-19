@@ -17,8 +17,6 @@ export default class HtmlWriter implements IHtmlWriter {
   private _errorLevel = new Set(Array<hwTypes.HtmlErrorLevel>());
   private _tableStates = new Set(Array<hwTypes.TableState>());
 
-  private _closingTag: string = '';
-
   constructor(aTagName: string, aCloseTagType: hwTypes.CloseTagType = hwTypes.CloseTagType.Normal) {
     if (StringHelper.StringIsEmpty(aTagName)) {
       throw new Error('aTagName parameter cannot be empty in the constructor');
@@ -52,13 +50,14 @@ export default class HtmlWriter implements IHtmlWriter {
     this.closeBracket();
     this._tagStates.add(hwTypes.TagState.BracketOpen);
     this._html.append(`<${aString}`);
+    this.pushClosingTagValue(aCloseTagType, aString);
     return this;
   }
 
   // close methods
 
   public closeTag(aUseCRLF: hwTypes.UseCRLFOptions = hwTypes.UseCRLFOptions.NoCRLF): IHtmlWriter {
-    if (this._tagStates.has(hwTypes.TagState.TagClosed)) {
+    if (this._tagStack.isEmpty()) {
       throw new hwErrors.TryingToCloseClosedTagError(stringConstants.strClosingClosedTag);
     }
 
@@ -149,11 +148,12 @@ export default class HtmlWriter implements IHtmlWriter {
   }
 
   private closeTheTag(): void {
-    if (this.tagIsOpen() || this.inCommentTag()) {
-      if (StringHelper.StringIsEmpty(this._closingTag)) {
+    if (!this._tagStack.isEmpty() || this.inCommentTag()) {
+      this.HTML.append(this._tagStack.pop()?.tagName);
+    } else {
+      if (this._tagStack.isEmpty()) {
         throw new hwErrors.NoClosingTagHTMLWriterError(stringConstants.strNoClosingTag);
       }
-      this.HTML.append(`<${this._closingTag}>`);
     }
   }
 
@@ -172,7 +172,7 @@ export default class HtmlWriter implements IHtmlWriter {
   }
 
   private inSlashOnlyTag(): boolean {
-    return this._closingTag === TagMaker.MakeSlashCloseTag();
+    return this._tagStack.peek()?.closeTag === hwTypes.CloseTagType.Empty;
   }
 
   private tagIsOpen(): boolean {

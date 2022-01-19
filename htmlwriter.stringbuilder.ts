@@ -11,7 +11,7 @@ export class StringBuilder {
     return StringHelper.StringIsEmpty(this._string);
   }
 
-  append(aString: string): StringBuilder {
+  append(aString: string | undefined): StringBuilder {
     if (aString) {
       this._string += aString;
     }
