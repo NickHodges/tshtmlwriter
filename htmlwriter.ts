@@ -267,6 +267,31 @@ export default class HtmlWriter implements IHtmlWriter {
     return this._errorLevel.has(hwTypes.HtmlErrorLevel.Errors);
   }
 
+  private CheckInCommentTag() {
+    if (!this.inCommentTag() && this.checkForErrors) {
+
+    }
+  }
+
+  private checkInListTag() {}
+  private checkInFormTag() {}
+  private checkInObjectTag() {}
+  private checkInFieldSetTag() {}
+  private checkInTableRowTag() {}
+  private checkInTableTag() {}
+  private checkInFramesetTag() {}
+  private checkInMapTag() {}
+  private checkInSelectTag() {}
+  private checkBracketOpen(aString: string) {}
+  private checkCurrentTagIsHTMLTag() {}
+  private checkNoOtherTableTags() {}
+  private checkNoColTag() {}
+  private checkBeforeTableContent() {}
+  private checkInDefList() {}
+  private checkIfNestedDefList() {}
+  private checkDefTermIsCurrent() {}
+  private checkDefItemIsCurrent() {}
+
   // properties
 
   public get HTML(): StringBuilder {
