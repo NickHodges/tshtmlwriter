@@ -20,3 +20,12 @@ export class NotInHeadTagError extends Error {
     Object.setPrototypeOf(this, NotInHeadTagError.prototype);
   }
 }
+
+export class NotInCommentTagError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotInCommentTagError';
+    Object.setPrototypeOf(this, NotInComentTagError.prototype);
+  }
+}
+

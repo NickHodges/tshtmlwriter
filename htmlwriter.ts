@@ -259,7 +259,7 @@ export default class HtmlWriter implements IHtmlWriter {
   // Check methods
   private checkInHeadTag(): void {
     if (!this.inHeadTag() && this.checkForErrors()) {
-      throw new hwErrors.NotInHeadTagError('Trying to add something to a <head> tag that is not allowed in a <head> tag');
+      throw new hwErrors.NotInHeadTagError('Trying to add something to a <head> tag that is not allowed in a <head> tag.');
     }
   }
 
@@ -268,29 +268,39 @@ export default class HtmlWriter implements IHtmlWriter {
   }
 
   private CheckInCommentTag() {
-    if (!this.inCommentTag() && this.checkForErrors) {
-
+    if (!this.inCommentTag() && this.checkForErrors()) {
+      throw new hwErrors.NotInCommentTagError('Trying to add something to a <comment> tag that is not allowed in a <comment> tag.')
     }
   }
 
-  private checkInListTag() {}
-  private checkInFormTag() {}
-  private checkInObjectTag() {}
-  private checkInFieldSetTag() {}
-  private checkInTableRowTag() {}
-  private checkInTableTag() {}
-  private checkInFramesetTag() {}
-  private checkInMapTag() {}
-  private checkInSelectTag() {}
-  private checkBracketOpen(aString: string) {}
-  private checkCurrentTagIsHTMLTag() {}
-  private checkNoOtherTableTags() {}
-  private checkNoColTag() {}
-  private checkBeforeTableContent() {}
-  private checkInDefList() {}
-  private checkIfNestedDefList() {}
-  private checkDefTermIsCurrent() {}
-  private checkDefItemIsCurrent() {}
+  private checkInListTag() {
+    if (!this.inListTag() && this.checkForErrors()) {
+      throw new hwErrors.NotInListTagError('Trying to add something to <list> tag that is not allowed in a <list> tag.')
+    }
+  }
+
+  private checkInFormTag() {
+    if (!this.inFormTag() && this.checkForErrors()) {
+      throw hwErrors.NotInFormTag('Trying to add something to a <form> tag that is not allowed in a <form> tag.')
+    }
+  }
+  
+  private checkInObjectTag() { }
+  private checkInFieldSetTag() { }
+  private checkInTableRowTag() { }
+  private checkInTableTag() { }
+  private checkInFramesetTag() { }
+  private checkInMapTag() { }
+  private checkInSelectTag() { }
+  private checkBracketOpen(aString: string) { }
+  private checkCurrentTagIsHTMLTag() { }
+  private checkNoOtherTableTags() { }
+  private checkNoColTag() { }
+  private checkBeforeTableContent() { }
+  private checkInDefList() { }
+  private checkIfNestedDefList() { }
+  private checkDefTermIsCurrent() { }
+  private checkDefItemIsCurrent() { }
 
   // properties
 
